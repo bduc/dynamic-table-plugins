@@ -1,0 +1,32 @@
+{
+  "name": "dynamic-table-plugins",
+  "dependencies": {
+    "underscore": ">=1.7.0",
+    "jquery": ">=1.10"
+  },
+  "version": "0.0.1",
+  "authors": [
+    "Bart Duchesne <bduc@dyndaco.com>"
+  ],
+  "description": "Extend you table with grid like features.",
+  "main": [
+    "movable_columns.js",
+    "remote_data.js",
+    "sortable_columns.js",
+    "visible_columns.js"
+  ],
+  "keywords": [
+    "table",
+    "jquery"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "assets/components",
+    "test",
+    "tests"
+  ]
+}
