@@ -26,7 +26,10 @@
         },
 
         initialize: function() {
-            this.$table.on('data:load', $.proxy(this.load,this));
+            
+            this.$table.on('data:load', $.proxy(function(event,params){
+                this.load(params);
+            },this));
             
             if( ! this.options.noautoload ) {
                 this.load();
@@ -39,25 +42,35 @@
 
             this.$table.find(this.options.selector).each(function () {
                 var $th = $(this);
-                columns.push( { column: $th.data('column') , visible: $th.is(':visible') } )
+                columns.push({ 
+                    column:  $th.data('column'), 
+                    visible: $th.is(':visible'),
+                    class:   $th.data('class')
+                })
             });
             return columns;
         },
 
-        load: function() {
-            var params = {};
+        load: function( params ) {
+            var query_params = $.extend({},params);
             
             // gather params from other plugins 
-            this.$table.trigger("data:params", params);
+            this.$table.trigger("data:params", query_params );
             
-            console.log("data#load params=",params);
+            console.log("data#load params=",query_params );
             
             $.ajax({
                 url: this.options.url,
                 dataType: this.options.dataType,
                 success: $.proxy(this._dataLoaded,this),
-                data: params
+                data: this._encode_params_for_rails( query_params )
             });
+        },
+        
+        // rails wants NO numbers between brackets for array elements; if the numbers is present
+        // a hash is created
+        _encode_params_for_rails: function( query_params ) {
+            return $.param(query_params).replace(/%5B\d+%5D/g,'%5B%5D')
         },
 
         _dataLoaded: function(json_data , status , options ) {

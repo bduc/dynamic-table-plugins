@@ -7,12 +7,57 @@
 
         this.$table = $table;
 
+        if( this.options.store !== undefined )
+            this.store = this.options.store;
+        else
+            this.store = window.store;
+
+        if( this.options.stateId !== undefined )
+            this.stateId = this.options.stateId;
+        else
+            this.stateId = this.$table.attr('id');
+
         this.$table.on('mousedown.move_columns', this.options.selector, $.proxy(this._headerMousedown, this));
+
+        this.$table.on('state:save', $.proxy(this.saveState,this));
+        this.$table.on('state:restore', $.proxy(this.restoreState,this));
     };
 
     $.extend(MovableColumns.prototype, {
         defaults: {
-            selector: 'tr th'
+            selector: 'thead > tr > th'
+        },
+        
+        saveState: function() {
+            console.log('saveState',this,arguments);
+            if( this.store && this.stateId ) {
+                this.store.set(this.stateId+'.column_order',this.columnOrder());
+            }
+        },
+
+        restoreState: function() {
+            console.log('restoreState',this,arguments);
+            if( this.store && this.stateId ) {
+                var column_order = this.store.get(this.stateId+'.column_order');
+                _.each(column_order, function( column_name, idx ) {
+                    var $th = this.$table.find(this.options.selector).filter("[data-column='" + column_name + "']");
+                    var col_index = $th.index();
+
+                    console.log(column_name, col_index, idx );
+                    
+                    if( col_index != idx ) {
+                        this._swapColumns(col_index,idx);
+                    }
+                },this);
+            }
+        },
+
+        columnOrder: function() {
+            var column_order = [];
+            this.$table.find(this.options.selector).each(function () {
+                column_order.push($(this).data('column'))
+            });
+            return column_order;
         },
 
         _swapColumns: function (oldIndex, newIndex) {
@@ -116,6 +161,7 @@
                     this.source_th,
                     this.sourceIndex,
                     this.targetIndex]);
+                
                 this.$table.trigger('table:layout:changed',[this]);
             }
 
@@ -168,7 +214,7 @@
 
             var targetIndex = 0;
             var self = this;
-            this.$table.find('thead > tr > th').each(function (idx) {
+            this.$table.find(this.options.selector).each(function (idx) {
                 var $th = $(this);
                 
                 console.log(idx,$th);
@@ -191,8 +237,6 @@
                     })
                 }
             });
-
-            
         }
     });
 

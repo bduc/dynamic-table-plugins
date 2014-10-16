@@ -2,54 +2,89 @@
     "use strict;"
 
     var VisibleColumns = function ($table, options) {
-
         this.options = $.extend({}, this.defaults, options);
-
+        
         this.$table = $table;
-
+        
         this.$columns_menu = $(this.options.columns_menu);
+        
+        this.$columns_menu.empty();
 
-        this.initialize();
+        if( this.options.store !== undefined )
+            this.store = this.options.store;
+        else
+            this.store = window.store;
+        
+        if( this.options.stateId !== undefined )
+            this.stateId = this.options.stateId;
+        else
+            this.stateId = this.$table.attr('id');
+        
+        var self = this;
+        this.$table.find(this.options.selector).each(function(){
+            var th_el = $(this);
+
+            var column_name = th_el.data('column');
+            var hidden      = th_el.data('hidden');
+            var unhideable  = th_el.data('unhideable');
+
+            if( ! unhideable ) {
+                self.$columns_menu.append('<li><a href="javascript: false;" data-column="' + column_name + '"><span class="fa fa-fw fa-check-square-o"></span>' + th_el.text() + '</a></li>');
+            }
+
+            if( hidden ) {
+                self.hideColumn(column_name);
+            }
+        });
+
+        this.$columns_menu.on('click.dynamic_table', 'li > a', function (event) {
+            event.preventDefault();
+            var $a = $(event.target).closest('a');
+            var column_name = $a.data('column');
+            var $th = self.$table.find(self.options.selector).filter("[data-column='" + column_name + "']").first();
+            if ($th.is(":visible")) {
+                self.hideColumn(column_name);
+            } else {
+                self.showColumn(column_name);
+            }
+        });
+
+        this.$table.on('state:save',    $.proxy(this.saveState,this));
+        this.$table.on('state:restore', $.proxy(this.restoreState,this));
     };
 
 
     $.extend(VisibleColumns.prototype, {
         defaults: {
             columns_menu: '',
-            selector: 'tr th'
+            selector: 'thead > tr > th',
+            store: window.store
+        },
+        
+        saveState: function() {
+            console.log('saveState',this,arguments);
+            if( this.store && this.stateId ) {
+                this.store.set(this.stateId+'.hidden_columns',this.hiddenColumns());        
+            }
         },
 
-        initialize: function() {
-            this.$columns_menu.empty();
-            var self = this;
-            this.$table.find(this.options.selector).each(function(){
-                var th_el = $(this);
+        restoreState: function() {
+            console.log('restoreState',this,arguments);
+            if( this.store && this.stateId ) {
+                var hidden_columns = this.store.get(this.stateId+'.hidden_columns');
+                _.each(hidden_columns, function( column_name ) {
+                    // IMPORTANT DO NOT FIRE EVENTS WHEN RESTORING STATE
+                    this.hideColumn(column_name, true);        
+                },this);
+            }
+        },
 
-                var column_name = th_el.data('column');
-                var hidden      = th_el.data('hidden');
-                var unhideable  = th_el.data('unhideable');
-
-                if( ! unhideable ) {
-                    self.$columns_menu.append('<li><a href="javascript: false;" data-column="' + column_name + '"><span class="fa fa-fw fa-check-square-o"></span>' + th_el.text() + '</a></li>');
-                }
-
-                if( hidden ) {
-                    self.hideColumn(column_name);
-                }
+        hiddenColumns: function() {
+            var hidden_columns = [];
+            this.$table.find(this.options.selector).filter(":hidden").each(function () {
+                hidden_columns.push($(this).data('column'))
             });
-
-            this.$columns_menu.on('click.dynamic_table', 'li > a', function (event) {
-                event.preventDefault();
-                var $a = $(event.target).closest('a');
-                var column_name = $a.data('column');
-                var $th = self.$table.find(self.options.selector).filter("[data-column='" + column_name + "']").first();
-                if ($th.is(":visible")) {
-                    self.hideColumn(column_name);
-                } else {
-                    self.showColumn(column_name);
-                }
-            });
-
+            return hidden_columns;
         },
 
         hideColumn: function( column_name, suppress_event ) {

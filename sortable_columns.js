@@ -7,7 +7,33 @@
 
         this.$table = $table;
 
-        this.initialize();
+        var self = this;
+
+        var sort_order = [];
+
+        this.$table.find(this.options.selector).each(function(){
+            var $th = $(this);
+
+            var column_name = $th.data('column');
+            var unsortable  = $th.data('unsortable');
+
+            if( ! unsortable ) {
+                $th.append("<span class='pull-right'><span class='sort fa fa-fw'></span></span>");
+            }
+        });
+
+        // suppress initial event
+        this.sortOrder( this.sortOrder(), true );
+
+        this.$table.on('click.sortable_columns', this.options.selector, $.proxy(this._headerClick, this));
+
+        // integrate with remote_data plugin by adding the sort_order to the request params
+        this.$table.on('data:params', $.proxy(function(event, params) {
+            console.log("sortable_column[data:params]", arguments);
+            params['order'] = this.sortOrder();
+        },this));
+
+        this.$table.on('column:sorted', function() { $(this).trigger('data:load') });
     };
 
     $.extend(SortableColumns.prototype, {
@@ -19,36 +45,6 @@
             }
         },
 
-        initialize: function() {
-            var self = this;
-            
-            var sort_order = [];
-            
-            this.$table.find(this.options.selector).each(function(){
-                var $th = $(this);
-                    
-                var column_name = $th.data('column');
-                var unsortable  = $th.data('unsortable');
-
-                if( ! unsortable ) {
-                    $th.append("<span class='pull-right'><span class='sort fa fa-fw'></span></span>");
-                }
-            });
-
-            // suppress initial event
-            this.sortOrder( this.sortOrder(), true );                
-            
-            this.$table.on('click.sortable_columns', this.options.selector, $.proxy(this._headerClick, this));
-            
-            // integrate with remote_data plugin by adding the sort_order to the request params
-            this.$table.on('data:params', $.proxy(function(event, params) {
-                console.log("sortable_column[data:params]", arguments);
-                params['order'] = this.sortOrder();
-            },this));
-            
-            this.$table.on('column:sorted', function() { $(this).trigger('data:load') });
-        },
-        
         _headerClick: function( event ) {
             event.preventDefault();
             var $th = $(event.target).closest('th');
@@ -98,7 +94,6 @@
                 this.$table.find(this.options.selector).find("span.sort")
                                                        .removeClass('fa-sort-up')
                                                        .removeClass('fa-sort-down')
-                                                       .addClass('fa-sort').addClass('text-muted')
                                                        .text('');
                 this.$table.find(this.options.selector).data('sort',null).data('sort-idx',null);
  
