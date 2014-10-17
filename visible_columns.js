@@ -72,10 +72,21 @@
             console.log('restoreState',this,arguments);
             if( this.store && this.stateId ) {
                 var hidden_columns = this.store.get(this.stateId+'.hidden_columns');
+
+                var self = this;
+                this.$table.find(this.options.selector).filter(":hidden").each(function () {
+                    var $th = $(this);
+                    var column_name = $th.data('column');
+                    if( _.indexOf(hidden_columns, column_name) == -1 ) {
+                        self.showColumn(column_name, true);
+                    }
+                });
+
                 _.each(hidden_columns, function( column_name ) {
                     // IMPORTANT DO NOT FIRE EVENTS WHEN RESTORING STATE
                     this.hideColumn(column_name, true);        
                 },this);
+
             }
         },
 
