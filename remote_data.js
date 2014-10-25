@@ -10,10 +10,13 @@
             this.$tbody = this.$table.append('<tbody></tbody>').find('tbody');
         }
 
-        this.options = $.extend({}, this.defaults, {
-                url: this.$table.data('url'),
-                noautoload: this.$table.data('noautoload')
-            },options);
+        this.options = $.extend(true, {}, this.defaults, {
+            url: this.$table.data('url'),
+            noautoload: this.$table.data('noautoload'),
+            rowCallback:  this.defaultRowCallback,
+            cellCallback: {
+            }
+        },options);
 
         this.initialize();
     };
@@ -25,8 +28,38 @@
             dataType: 'json'
         },
 
+        populateCell: function(td,row_data,column_info) {
+            var content;
+
+            if( column_info.column === undefined || row_data[column_info.column] === undefined ) {
+                content = "";
+            } else {
+                content = row_data[column_info.column];
+            }
+
+            var $td = $(td);
+
+            if( ! column_info.visible ) {
+                $td.hide();
+            }
+
+            if( column_info.class ) {
+                $td.addClass(column_info.class);
+            }
+
+            if( this.options.cellCallback[column_info.column] ) {
+                content = this.options.cellCallback[column_info.column].apply(this,[td,row_data,column_info])                       }
+
+            $td.html( content );
+
+            $td = null;
+        },
+
+        defaultRowCallback: function() {
+        },
+
         initialize: function() {
-            
+
             this.$table.on('data:load', $.proxy(function(event,params){
                 this.load(params);
             },this));
@@ -78,22 +111,21 @@
             this.$tbody.empty();
             var column_order = this.columnOrderVisibility();
             _.each( json_data.data , function( row_data ) {
-                var tmpRow = "";
+
+                var tr = document.createElement('TR');
+
+                this.options.rowCallback.apply(this,[tr,row_data]);
+
                 _.each( column_order, function( column_info ) {
-                    var content;
-                    if( column_info.column === undefined || row_data[column_info.column] === undefined ) {
-                        content = "";    
-                    } else {
-                        content = row_data[column_info.column]; 
-                    }
-                    if( column_info.visible ) {
-                        tmpRow += "<td>" + content + "</td>"
-                    } else {
-                        tmpRow += "<td style='display: none;'>" + content + "</td>"
-                    }
-                } , this);
-                this.$tbody.append("<tr>"+tmpRow+"</td>");
-            } , this);
+                    var td = document.createElement('TD');
+
+                    this.populateCell(td,row_data,column_info);
+
+                    tr.appendChild(td);
+                    $td = null;
+                },this);
+                this.$tbody.append(tr);
+            },this);
         }
 
     });
