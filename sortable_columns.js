@@ -29,7 +29,6 @@
 
         // integrate with remote_data plugin by adding the sort_order to the request params
         this.$table.on('data:params', $.proxy(function(event, params) {
-            console.log("sortable_column[data:params]", arguments);
             params['order'] = this.sortOrder();
         },this));
 

@@ -29,22 +29,18 @@
         },
         
         saveState: function() {
-            console.log('saveState',this,arguments);
             if( this.store && this.stateId ) {
                 this.store.set(this.stateId+'.column_order',this.columnOrder());
             }
         },
 
         restoreState: function() {
-            console.log('restoreState',this,arguments);
             if( this.store && this.stateId ) {
                 var column_order = this.store.get(this.stateId+'.column_order');
                 _.each(column_order, function( column_name, idx ) {
                     var $th = this.$table.find(this.options.selector).filter("[data-column='" + column_name + "']");
                     var col_index = $th.index();
 
-                    console.log(column_name, col_index, idx );
-                    
                     if( col_index != idx ) {
                         this._swapColumns(col_index,idx);
                     }
@@ -217,7 +213,6 @@
             this.$table.find(this.options.selector).each(function (idx) {
                 var $th = $(this);
                 
-                console.log(idx,$th);
                 if( $th.data('unmovable') ) {
                     if( idx == 0 ) {
                         self.targets = [];

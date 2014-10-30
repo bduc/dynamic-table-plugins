@@ -90,8 +90,6 @@
             // gather params from other plugins 
             this.$table.trigger("data:params", query_params );
             
-            console.log("data#load params=",query_params );
-            
             $.ajax({
                 url: this.options.url,
                 dataType: this.options.dataType,
@@ -107,7 +105,6 @@
         },
 
         _dataLoaded: function(json_data , status , options ) {
-            console.log(arguments);
             this.$tbody.empty();
             var column_order = this.columnOrderVisibility();
             _.each( json_data.data , function( row_data ) {

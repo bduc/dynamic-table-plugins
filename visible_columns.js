@@ -62,14 +62,12 @@
         },
         
         saveState: function() {
-            console.log('saveState',this,arguments);
             if( this.store && this.stateId ) {
                 this.store.set(this.stateId+'.hidden_columns',this.hiddenColumns());        
             }
         },
 
         restoreState: function() {
-            console.log('restoreState',this,arguments);
             if( this.store && this.stateId ) {
                 var hidden_columns = this.store.get(this.stateId+'.hidden_columns');
 
