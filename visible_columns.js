@@ -22,14 +22,14 @@
         
         var self = this;
         this.$table.find(this.options.selector).each(function(){
-            var th_el = $(this);
+            var $th = $(this);
 
-            var column_name = th_el.data('column');
-            var hidden      = th_el.data('hidden');
-            var unhideable  = th_el.data('unhideable');
+            var column_name = $th.data('column');
+            var hidden      = $th.data('hidden');
+            var unhideable  = $th.data('unhideable');
 
             if( ! unhideable ) {
-                self.$columns_menu.append('<li><a href="javascript: false;" data-column="' + column_name + '"><span class="fa fa-fw fa-check-square-o"></span>' + th_el.text() + '</a></li>');
+                self.$columns_menu.append('<li><a href="javascript: false;" data-column="' + column_name + '"><span class="fa fa-fw fa-check-square-o"></span>' + $th.text() + '</a></li>');
             }
 
             if( hidden ) {
@@ -75,7 +75,9 @@
                 this.$table.find(this.options.selector).filter(":hidden").each(function () {
                     var $th = $(this);
                     var column_name = $th.data('column');
-                    if( _.indexOf(hidden_columns, column_name) == -1 ) {
+                    var hidden      = $th.data('hidden');
+
+                    if( ! hidden && _.indexOf(hidden_columns, column_name) == -1 ) {
                         self.showColumn(column_name, true);
                     }
                 });
