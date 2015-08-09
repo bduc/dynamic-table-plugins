@@ -153,7 +153,8 @@
 
                 this._swapColumns(this.sourceIndex, this.targetIndex);
 
-                this.$table.trigger("column:move:stop", [this,
+                this.$table.trigger("column:move:end", [this,
+                    this.columnOrder(),
                     this.source_th,
                     this.sourceIndex,
                     this.targetIndex]);
